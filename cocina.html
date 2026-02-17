@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel Cocina</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+:root{
+  --oscuro:#1e1e1e;
+  --amarillo:#f2c200;
+  --crema:#f5efe6;
+}
+body{background:var(--crema);font-family:'Segoe UI',sans-serif;}
+.card-panel{
+  background:white;border-radius:12px;
+  padding:20px;box-shadow:0 4px 10px rgba(0,0,0,.1);
+}
+.toast-msg{
+  position:fixed;top:20px;right:20px;
+  background:var(--oscuro);color:white;
+  padding:12px 18px;border-radius:8px;
+  animation:fade 2s forwards;
+}
+@keyframes fade{
+  0%{opacity:0}20%{opacity:1}80%{opacity:1}100%{opacity:0}
+}
+</style>
+</head>
+
+<body class="container my-5">
+
+<h1 class="mb-4">👨‍🍳 Panel de Cocina</h1>
+
+<div class="row">
+<div class="col-md-6">
+  <div class="card-panel mb-4">
+    <h4>Pedido Actual</h4>
+    <div id="pedidoActual"></div>
+  </div>
+</div>
+
+<div class="col-md-6">
+  <div class="card-panel">
+    <h4>Registro</h4>
+    <ul id="registro"></ul>
+  </div>
+</div>
+</div>
+
+<script>
+const pedidoBox=document.getElementById('pedidoActual');
+const registro=document.getElementById('registro');
+
+function toast(msg){
+  const t=document.createElement('div');
+  t.className='toast-msg';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(()=>t.remove(),2000);
+}
+
+function cargar(){
+  pedidoBox.innerHTML='';
+  const pedido=JSON.parse(localStorage.getItem('pedidoActual'));
+  if(!pedido){pedidoBox.innerHTML='<p>No hay pedidos.</p>';return;}
+
+  pedidoBox.innerHTML=`
+    <ul>${pedido.items.map(i=>`<li>${i}</li>`).join('')}</ul>
+    <p>Total: $${pedido.total}</p>
+    <small>${pedido.fecha}</small><br><br>
+    <button class="btn btn-warning" onclick="preparar()">En preparación</button>
+  `;
+}
+
+function preparar(){
+  const pedido=JSON.parse(localStorage.getItem('pedidoActual'));
+  let historial=JSON.parse(localStorage.getItem('historial'))||[];
+  historial.push(pedido);
+  localStorage.setItem('historial',JSON.stringify(historial));
+  localStorage.setItem('estadoPedido','preparando');
+  localStorage.removeItem('pedidoActual');
+  toast('Pedido confirmado');
+  cargar();
+  mostrarRegistro();
+}
+
+function mostrarRegistro(){
+  registro.innerHTML='';
+  const historial=JSON.parse(localStorage.getItem('historial'))||[];
+  historial.forEach(p=>{
+    const li=document.createElement('li');
+    li.textContent=`$${p.total} - ${p.fecha}`;
+    registro.appendChild(li);
+  });
+}
+
+cargar();mostrarRegistro();
+</script>
+
+</body>
+</html>

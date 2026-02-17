@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Crepería Coffee House</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<style>
+:root{
+  --oscuro:#1e1e1e;
+  --cafe:#3e2723;
+  --amarillo:#f2c200;
+  --crema:#f5efe6;
+}
+body{background:var(--crema);font-family:'Segoe UI',sans-serif;color:var(--cafe);}
+.navbar{background:var(--oscuro);}
+.navbar-brand{color:white!important;font-weight:600;}
+.hero{
+  background:linear-gradient(rgba(0,0,0,.6),rgba(0,0,0,.6)),
+  url('https://images.unsplash.com/photo-1509042239860-f550ce710b93') center/cover;
+  min-height:60vh;display:flex;align-items:center;justify-content:center;
+  text-align:center;color:white;
+}
+.hero span{color:var(--amarillo);}
+.card img{height:200px;object-fit:cover;}
+.btn-coffee{background:var(--amarillo);border:none;font-weight:600;}
+.cart-btn{
+  position:fixed;bottom:20px;right:20px;
+  width:65px;height:65px;border-radius:50%;
+  background:var(--amarillo);
+  display:flex;align-items:center;justify-content:center;
+  font-size:1.8rem;cursor:pointer;
+  box-shadow:0 6px 15px rgba(0,0,0,.3);
+}
+.cart-count{
+  position:absolute;top:5px;right:5px;
+  background:var(--oscuro);color:white;
+  border-radius:50%;font-size:.75rem;padding:2px 6px;
+}
+
+/* TOAST */
+.toast-box{
+  position:fixed;top:20px;right:20px;z-index:2000;
+}
+.toast-msg{
+  background:var(--oscuro);color:white;
+  padding:12px 18px;border-radius:8px;
+  margin-bottom:10px;
+  animation:fade 2s forwards;
+}
+@keyframes fade{
+  0%{opacity:0;transform:translateY(-10px)}
+  20%{opacity:1;transform:translateY(0)}
+  80%{opacity:1}
+  100%{opacity:0}
+}
+</style>
+</head>
+<body>
+
+<div class="toast-box" id="toastBox"></div>
+
+<nav class="navbar">
+  <div class="container">
+    <span class="navbar-brand">☕ Crepería Coffee House</span>
+  </div>
+</nav>
+
+<section class="hero">
+  <div>
+    <h1 class="display-4 fw-bold">Crepería <span>Coffee House</span></h1>
+    <p class="lead">Café, crepas y momentos que se quedan</p>
+  </div>
+</section>
+
+<section class="container my-5">
+<div class="row g-4">
+
+<div class="col-md-4">
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1511920170033-f8396924c348">
+    <div class="card-body text-center">
+      <h5>Café Americano</h5>
+      <p>$25</p>
+      <button class="btn btn-coffee" onclick="agregar('Café Americano',25)">Ordenar</button>
+    </div>
+  </div>
+</div>
+
+<div class="col-md-4">
+  <div class="card">
+    <img src="https://images.unsplash.com/photo-1509042239860-f550ce710b93">
+    <div class="card-body text-center">
+      <h5>Capuccino</h5>
+      <p>$35</p>
+      <button class="btn btn-coffee" onclick="agregar('Capuccino',35)">Ordenar</button>
+    </div>
+  </div>
+</div>
+
+</div>
+</section>
+
+<div class="cart-btn" data-bs-toggle="modal" data-bs-target="#carrito">
+🛒 <span class="cart-count" id="cartCount">0</span>
+</div>
+
+<div class="modal fade" id="carrito">
+<div class="modal-dialog">
+<div class="modal-content p-3">
+<h5>Tu Pedido</h5>
+<ul id="lista" class="list-group mb-2"></ul>
+<p>Total: $<span id="total">0</span></p>
+<button class="btn btn-coffee" onclick="enviarPedido()">Enviar a cocina</button>
+</div>
+</div>
+</div>
+
+<script>
+let total=0,count=0;
+const lista=document.getElementById('lista');
+const totalSpan=document.getElementById('total');
+const cartCount=document.getElementById('cartCount');
+
+function toast(msg){
+  const box=document.getElementById('toastBox');
+  const div=document.createElement('div');
+  div.className='toast-msg';
+  div.textContent=msg;
+  box.appendChild(div);
+  setTimeout(()=>div.remove(),2000);
+}
+
+function agregar(nombre,precio){
+  const li=document.createElement('li');
+  li.className='list-group-item d-flex justify-content-between';
+  li.innerHTML=`<span>${nombre}</span><strong>$${precio}</strong>`;
+  lista.appendChild(li);
+  total+=precio;count++;
+  totalSpan.textContent=total;
+  cartCount.textContent=count;
+}
+
+function enviarPedido(){
+  if(total===0) return toast('Carrito vacío');
+  const items=[...lista.children].map(li=>li.querySelector('span').textContent);
+  localStorage.setItem('pedidoActual',JSON.stringify({items,total,fecha:new Date().toLocaleString()}));
+  localStorage.setItem('estadoPedido','enviado');
+  toast('✅ Pedido enviado a cocina');
+  lista.innerHTML='';total=count=0;
+  totalSpan.textContent=cartCount.textContent=0;
+}
+
+setInterval(()=>{
+  if(localStorage.getItem('estadoPedido')==='preparando'){
+    toast('👨‍🍳 Tu pedido ya se está preparando');
+    localStorage.removeItem('estadoPedido');
+  }
+},3000);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
